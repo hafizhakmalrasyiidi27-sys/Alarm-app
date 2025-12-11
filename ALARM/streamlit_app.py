@@ -1,144 +1,129 @@
-import React from "react";
-import { BarChart, TrendingUp, Moon, Award } from "lucide-react";
+import streamlit as st
+import datetime
+import time
 
-interface SleepLogEntry {
-  id: string;
-  date: string;
-  duration: number; 
-  quality?: number | null;
-}
+# -----------------------------------------------------------
+# Model data untuk alarm & log
+# -----------------------------------------------------------
+class Alarm:
+    def __init__(self, label, time_str, repeat):
+        self.label = label
+        self.time_str = time_str
+        self.repeat = repeat  # list of days
+        self.enabled = True
 
-interface Props {
-  logs: SleepLogEntry[];
-}
+class AlarmLog:
+    def __init__(self, label, duration):
+        self.label = label
+        self.duration = duration
+        self.timestamp = datetime.datetime.now()
 
-export default function SleepStats({ logs }: Props) {
-  if (!logs || logs.length === 0) {
-    return (
-      <div className="text-center text-gray-500 py-10">
-        Belum ada data tidur.
-      </div>
-    );
-  }
+# -----------------------------------------------------------
+# Utility
+# -----------------------------------------------------------
+def format_duration(seconds):
+    minutes = seconds // 60
+    remaining_seconds = seconds % 60
+    return f"{minutes}m {remaining_seconds}s"
 
-  const durations = logs.map((l) => l.duration);
-  const qualities = logs.map((l) => l.quality).filter((q) => q != null) as number[];
+# -----------------------------------------------------------
+# Initialize State
+# -----------------------------------------------------------
+if "alarms" not in st.session_state:
+    st.session_state.alarms = []
 
-  const avgSleep = durations.reduce((a, b) => a + b, 0) / durations.length;
-  const avgHours = Math.floor(avgSleep / 60);
-  const avgMinutes = Math.floor(avgSleep % 60);
+if "logs" not in st.session_state:
+    st.session_state.logs = []
 
-  const avgQuality = qualities.length > 0 
-    ? qualities.reduce((a, b) => a + b, 0) / qualities.length 
-    : 0;
+if "triggered" not in st.session_state:
+    st.session_state.triggered = None
 
-  const longest = Math.max(...durations);
-  const shortest = Math.min(...durations);
+# -----------------------------------------------------------
+# Sidebar - Create Alarm
+# -----------------------------------------------------------
+st.sidebar.title("Create Alarm")
 
-  const mean = avgSleep;
-  const variance = durations.reduce((sum, d) => sum + Math.pow(d - mean, 2), 0) / durations.length;
-  const stddev = Math.sqrt(variance);
-  const consistency = Math.max(0, Math.min(100, 100 - (stddev / 60) * 10));
+label = st.sidebar.text_input("Label", "")
+time_str = st.sidebar.time_input("Alarm Time", value=datetime.time(7, 0)).strftime("%H:%M")
+repeat_days = st.sidebar.multiselect("Repeat", ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"])
 
-  const last7 = logs.slice(-7);
+if st.sidebar.button("Add Alarm"):
+    st.session_state.alarms.append(Alarm(label, time_str, repeat_days))
+    st.sidebar.success("Alarm added successfully.")
 
-  function formatDuration(min: number) {
-    const h = Math.floor(min / 60);
-    const m = min % 60;
-    return `${h}j ${m}m`;
-  }
+# -----------------------------------------------------------
+# Main Layout
+# -----------------------------------------------------------
+st.title("Alarm App")
 
-  return (
-    <div className="w-full max-w-2xl mx-auto py-6 px-4 font-sans">
-      <div className="relative">
-        <img
-          src="/sleep-banner.jpg"
-          className="w-full h-44 object-cover rounded-xl"
-        />
+# -----------------------------------------------------------
+# Display Active Alarms
+# -----------------------------------------------------------
+st.subheader("Active Alarms")
 
-        <div className="absolute bottom-3 left-4 bg-black bg-opacity-40 px-4 py-2 rounded-lg backdrop-blur-sm">
-          <h2 className="text-white text-xl font-semibold">Statistik Tidur</h2>
-          <p className="text-gray-200 text-sm">Analisis 7 hari terakhir</p>
-        </div>
-      </div>
+if len(st.session_state.alarms) == 0:
+    st.info("No alarms available.")
+else:
+    for idx, alarm in enumerate(st.session_state.alarms):
+        col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
+        with col1:
+            st.write(f"{alarm.label} — {alarm.time_str}")
+        with col2:
+            st.write(", ".join(alarm.repeat) if alarm.repeat else "No Repeat")
+        with col3:
+            if st.button("Toggle", key=f"toggle_{idx}"):
+                alarm.enabled = not alarm.enabled
+        with col4:
+            if st.button("Delete", key=f"delete_{idx}"):
+                st.session_state.alarms.pop(idx)
+                st.experimental_rerun()
 
-      <div className="grid grid-cols-2 gap-4 mt-5">
-        {/* Average Sleep */}
-        <div className="bg-white rounded-xl p-4 shadow-md border flex flex-col">
-          <div className="flex items-center gap-2 text-gray-700">
-            <Moon size={18} />
-            <span className="font-medium">Rata-rata Tidur</span>
-          </div>
-          <p className="text-2xl font-bold mt-1">{avgHours}j {avgMinutes}m</p>
-          <p className="text-sm text-gray-500">per malam</p>
-        </div>
+# -----------------------------------------------------------
+# Alarm Trigger Check
+# -----------------------------------------------------------
+current_time = datetime.datetime.now().strftime("%H:%M")
+current_day = datetime.datetime.now().strftime("%a")
 
-        {/* Quality */}
-        <div className="bg-white rounded-xl p-4 shadow-md border flex flex-col">
-          <div className="flex items-center gap-2 text-gray-700">
-            <Award size={18} />
-            <span className="font-medium">Kualitas</span>
-          </div>
-          <p className="text-2xl font-bold mt-1">{avgQuality.toFixed(1)}</p>
-          <p className="text-sm text-gray-500">skala 1 - 5</p>
-        </div>
-      </div>
+for alarm in st.session_state.alarms:
+    if alarm.enabled:
+        should_trigger = (alarm.time_str == current_time)
 
-      <div className="grid grid-cols-2 gap-4 mt-5">
-        <div className="bg-white rounded-xl p-4 shadow-md border">
-          <p className="font-medium text-gray-700">Terpanjang</p>
-          <p className="text-xl font-bold mt-2">{formatDuration(longest)}</p>
-        </div>
+        if alarm.repeat:
+            should_trigger = should_trigger and (current_day in alarm.repeat)
 
-        <div className="bg-white rounded-xl p-4 shadow-md border">
-          <p className="font-medium text-gray-700">Tersingkat</p>
-          <p className="text-xl font-bold mt-2">{formatDuration(shortest)}</p>
-        </div>
-      </div>
+        if should_trigger:
+            st.session_state.triggered = {
+                "label": alarm.label,
+                "start_time": time.time()
+            }
 
-      <div className="mt-5 bg-white rounded-xl p-4 shadow-md border">
-        <div className="flex items-center gap-2 text-gray-700 mb-2">
-          <TrendingUp size={18} />
-          <span className="font-medium">Konsistensi</span>
-        </div>
-        <p className="text-xl font-bold">{consistency.toFixed(0)}%</p>
-      </div>
+# -----------------------------------------------------------
+# Triggered Alarm Interface
+# -----------------------------------------------------------
+if st.session_state.triggered:
+    st.warning(f"Alarm: {st.session_state.triggered['label']} is ringing!")
 
-      {/* Trend 7 days */}
-      <div className="mt-6 bg-white rounded-xl p-4 shadow-md border">
-        <div className="flex items-center gap-2 text-gray-700 mb-3">
-          <BarChart size={18} />
-          <span className="font-medium">Tren 7 Hari</span>
-        </div>
+    if st.button("Stop Alarm"):
+        start = st.session_state.triggered["start_time"]
+        duration = int(time.time() - start)
 
-        <div className="space-y-3">
-          {last7.map((log) => {
-            const percent = Math.min(100, Math.round((log.duration / 480) * 100));
-            const date = new Date(log.date).toLocaleDateString("id-ID", {
-              day: "2-digit",
-              month: "short",
-            });
+        st.session_state.logs.append(
+            AlarmLog(st.session_state.triggered["label"], duration)
+        )
 
-            return (
-              <div key={log.id}>
-                <p className="text-sm font-medium text-gray-700">
-                  {date} — {formatDuration(log.duration)}
-                </p>
-                <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-blue-500 rounded-full"
-                    style={{ width: `${percent}%` }}
-                  ></div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+        st.session_state.triggered = None
+        st.success("Alarm stopped.")
 
-      <p className="text-center text-gray-500 text-sm mt-6">
-        Idealnya tidur 7–9 jam setiap malam.
-      </p>
-    </div>
-  );
-}
+# -----------------------------------------------------------
+# Alarm Logs
+# -----------------------------------------------------------
+st.subheader("Alarm Logs")
+
+if len(st.session_state.logs) == 0:
+    st.info("No logs available.")
+else:
+    for log in st.session_state.logs:
+        timestamp_str = log.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        duration_str = format_duration(log.duration)
+
+        st.write(f"{timestamp_str} - {log.label} - {duration_str}")
