@@ -54,7 +54,7 @@ export function SleepStats({ logs }: SleepStatsProps) {
     return `${hours}j ${mins}m`;
   };
 
-  // Calculate consistency score (based on standard deviation)
+  // Calculate consistency score
   const mean = avgSleep;
   const variance = logs.reduce((sum, log) => sum + Math.pow(log.duration - mean, 2), 0) / logs.length;
   const stdDev = Math.sqrt(variance);
@@ -92,7 +92,7 @@ export function SleepStats({ logs }: SleepStatsProps) {
             <div className="bg-gradient-to-br from-yellow-400/20 to-orange-500/20 rounded-lg p-4 text-center">
               <Award size={32} className="text-yellow-400 mx-auto mb-2" />
               <p className="text-white/70 text-sm mb-1">Kualitas Rata-rata</p>
-              <p className="text-white text-2xl">{avgQuality.toFixed(1)} ⭐</p>
+              <p className="text-white text-2xl">{avgQuality.toFixed(1)} &#11088;</p>
             </div>
 
             <div className="bg-white/10 rounded-lg p-4 text-center">
@@ -127,7 +127,7 @@ export function SleepStats({ logs }: SleepStatsProps) {
         </h2>
 
         <div className="space-y-2">
-          {logs.slice(0, 7).map((log, index) => {
+          {logs.slice(0, 7).map((log) => {
             const percentage = (log.duration / (8 * 60)) * 100;
             return (
               <div key={log.id} className="space-y-1">
