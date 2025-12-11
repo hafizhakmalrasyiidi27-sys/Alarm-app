@@ -9,11 +9,10 @@ export function SleepStats({ logs }: SleepStatsProps) {
   if (logs.length === 0) {
     return (
       <div className="space-y-6">
-        {/* Hero Image for Empty State */}
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl overflow-hidden shadow-2xl">
           <div className="relative h-48">
             <img 
-              src="https://images.unsplash.com/photo-1585817934451-158d9f444228?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdW5yaXNlJTIwbW9ybmluZyUyMGxpZ2h0fGVufDF8fHx8MTc2NTM1NTU5NHww&ixlib=rb-4.1.0&q=80&w=1080"
+              src="https://images.unsplash.com/photo-1585817934451-158d9f444228?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
               alt="Morning Light"
               className="w-full h-full object-cover"
             />
@@ -54,7 +53,6 @@ export function SleepStats({ logs }: SleepStatsProps) {
     return `${hours}j ${mins}m`;
   };
 
-  // Calculate consistency score
   const mean = avgSleep;
   const variance = logs.reduce((sum, log) => sum + Math.pow(log.duration - mean, 2), 0) / logs.length;
   const stdDev = Math.sqrt(variance);
@@ -62,11 +60,10 @@ export function SleepStats({ logs }: SleepStatsProps) {
 
   return (
     <div className="space-y-6">
-      {/* Hero Image Section */}
       <div className="bg-white/10 backdrop-blur-lg rounded-2xl overflow-hidden shadow-2xl">
         <div className="relative h-48">
           <img 
-            src="https://images.unsplash.com/photo-1585817934451-158d9f444228?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdW5yaXNlJTIwbW9ybmluZyUyMGxpZ2h0fGVufDF8fHx8MTc2NTM1NTU5NHww&ixlib=rb-4.1.0&q=80&w=1080"
+            src="https://images.unsplash.com/photo-1585817934451-158d9f444228?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
             alt="Morning Light"
             className="w-full h-full object-cover"
           />
@@ -80,7 +77,6 @@ export function SleepStats({ logs }: SleepStatsProps) {
           </div>
         </div>
         
-        {/* Overview Stats */}
         <div className="p-6">
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="bg-gradient-to-br from-cyan-400/20 to-blue-500/20 rounded-lg p-4 text-center">
@@ -92,7 +88,11 @@ export function SleepStats({ logs }: SleepStatsProps) {
             <div className="bg-gradient-to-br from-yellow-400/20 to-orange-500/20 rounded-lg p-4 text-center">
               <Award size={32} className="text-yellow-400 mx-auto mb-2" />
               <p className="text-white/70 text-sm mb-1">Kualitas Rata-rata</p>
-              <p className="text-white text-2xl">{avgQuality.toFixed(1)} &#11088;</p>
+
+              {/* Ganti ⭐ dengan HTML entity supaya tidak error */}
+              <p className="text-white text-2xl">
+                {avgQuality.toFixed(1)} {'\u2B50'}
+              </p>
             </div>
 
             <div className="bg-white/10 rounded-lg p-4 text-center">
@@ -119,7 +119,6 @@ export function SleepStats({ logs }: SleepStatsProps) {
         </div>
       </div>
 
-      {/* Recent Trends */}
       <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl">
         <h2 className="text-white text-xl mb-6 flex items-center gap-2">
           <TrendingUp size={24} />
@@ -142,7 +141,7 @@ export function SleepStats({ logs }: SleepStatsProps) {
                 </div>
                 <div className="bg-white/20 rounded-full h-3 overflow-hidden">
                   <div 
-                    className="bg-gradient-to-r from-cyan-400 to-blue-500 h-full rounded-full transition-all duration-500"
+                    className="bg-gradient-to-r from-cyan-400 to-blue-500 h-full rounded-full"
                     style={{ width: `${Math.min(percentage, 100)}%` }}
                   />
                 </div>
