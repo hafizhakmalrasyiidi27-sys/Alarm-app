@@ -2,18 +2,18 @@ import streamlit as st
 import datetime
 import time
 
-# --------------------------------------------------------------------
-#  Image URLs (GitHub Raw – always accessible)
-# --------------------------------------------------------------------
-ICON_ALARM = "https://raw.githubusercontent.com/hjnilsson/country-flags/master/png100px/id.png"
-ICON_TIME = "https://raw.githubusercontent.com/google/material-design-icons/master/png/device/access_time/materialiconsoutlined/48dp/2x/outline_access_time_black_48dp.png"
+# ===============================
+# IMAGE ICONS (Guaranteed Visible)
+# ===============================
+ICON_ALARM = "https://raw.githubusercontent.com/google/material-design-icons/master/png/device/access_alarm/materialicons/48dp/2x/baseline_access_alarm_black_48dp.png"
+ICON_CLOCK = "https://raw.githubusercontent.com/google/material-design-icons/master/png/device/access_time/materialicons/48dp/2x/baseline_access_time_black_48dp.png"
 ICON_REPEAT = "https://raw.githubusercontent.com/google/material-design-icons/master/png/av/repeat/materialicons/48dp/2x/baseline_repeat_black_48dp.png"
 ICON_LOG = "https://raw.githubusercontent.com/google/material-design-icons/master/png/action/history/materialicons/48dp/2x/baseline_history_black_48dp.png"
-HEADER_BANNER = "https://raw.githubusercontent.com/techwithtim/Flask-App-Tutorial/master/static/img/alarm.jpg"
+HEADER_BANNER = "https://raw.githubusercontent.com/google/material-design-icons/master/png/device/access_alarm/materialicons/48dp/2x/baseline_access_alarm_black_48dp.png"
 
-# --------------------------------------------------------------------
-#  Models
-# --------------------------------------------------------------------
+# ===============================
+# Models
+# ===============================
 class Alarm:
     def __init__(self, label, time_str, repeat):
         self.label = label
@@ -27,17 +27,17 @@ class AlarmLog:
         self.duration = duration
         self.timestamp = datetime.datetime.now()
 
-# --------------------------------------------------------------------
-# Utility
-# --------------------------------------------------------------------
+# ===============================
+# Utils
+# ===============================
 def format_duration(seconds):
-    minutes = seconds // 60
-    second = seconds % 60
-    return f"{minutes}m {second}s"
+    mins = seconds // 60
+    sec = seconds % 60
+    return f"{mins}m {sec}s"
 
-# --------------------------------------------------------------------
-# State init
-# --------------------------------------------------------------------
+# ===============================
+# Session
+# ===============================
 if "alarms" not in st.session_state:
     st.session_state.alarms = []
 
@@ -47,128 +47,100 @@ if "logs" not in st.session_state:
 if "triggered" not in st.session_state:
     st.session_state.triggered = None
 
-# --------------------------------------------------------------------
-# HEADER WITH IMAGE
-# --------------------------------------------------------------------
-st.image(HEADER_BANNER, use_column_width=True)
-st.markdown(
-    "<h1 style='text-align:center; margin-top: -20px;'>Modern Alarm App</h1>",
-    unsafe_allow_html=True
-)
+# ===============================
+# Header
+# ===============================
+st.image(HEADER_BANNER, width=80)
+st.markdown("<h1 style='text-align:center;'>Alarm App</h1>", unsafe_allow_html=True)
 
-# --------------------------------------------------------------------
-# Sidebar - Create Alarm
-# --------------------------------------------------------------------
+# ===============================
+# Sidebar - Add Alarm
+# ===============================
 st.sidebar.title("Create Alarm")
 
-label = st.sidebar.text_input("Alarm Label")
-time_str = st.sidebar.time_input("Time", value=datetime.time(7, 0)).strftime("%H:%M")
-repeat_days = st.sidebar.multiselect("Repeat", ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"])
+label = st.sidebar.text_input("Label")
+time_str = st.sidebar.time_input("Time", datetime.time(7, 0)).strftime("%H:%M")
+repeat = st.sidebar.multiselect("Repeat", ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"])
 
-if st.sidebar.button("Add Alarm"):
-    st.session_state.alarms.append(Alarm(label, time_str, repeat_days))
-    st.sidebar.success("Alarm added successfully")
+if st.sidebar.button("Add"):
+    st.session_state.alarms.append(Alarm(label, time_str, repeat))
+    st.sidebar.success("Alarm added")
 
-# --------------------------------------------------------------------
-# Display Alarms
-# --------------------------------------------------------------------
+# ===============================
+# List Alarms
+# ===============================
 st.subheader("Active Alarms")
 
-if len(st.session_state.alarms) == 0:
-    st.info("No alarms added.")
+if not st.session_state.alarms:
+    st.info("No alarms yet.")
 else:
     for idx, alarm in enumerate(st.session_state.alarms):
 
-        st.markdown("""
-            <div style="
-                border:1px solid #ddd; 
-                padding:15px; 
-                border-radius:10px; 
-                margin-bottom:12px;
-                background-color:#fafafa;">
-            """, unsafe_allow_html=True)
+        with st.container():
+            col1, col2, col3, col4 = st.columns([1, 4, 2, 2])
 
-        col1, col2, col3, col4 = st.columns([1, 3, 2, 2])
+            with col1:
+                st.image(ICON_ALARM, width=40)
 
-        with col1:
-            st.image(ICON_ALARM, width=40)
+            with col2:
+                st.write(f"**{alarm.label}**")
+                st.write(f"⏰ {alarm.time_str}")
+                st.write(f"🔁 {', '.join(alarm.repeat) if alarm.repeat else 'No Repeat'}")
 
-        with col2:
-            st.write(f"**{alarm.label}**")
-            st.write(f"<img src='{ICON_TIME}' width='18'> {alarm.time_str}", unsafe_allow_html=True)
+            with col3:
+                if st.button("Toggle", key=f"tgl{idx}"):
+                    alarm.enabled = not alarm.enabled
 
-            repeat_label = ", ".join(alarm.repeat) if alarm.repeat else "No Repeat"
-            st.write(
-                f"<img src='{ICON_REPEAT}' width='18'> {repeat_label}",
-                unsafe_allow_html=True
-            )
+            with col4:
+                if st.button("Delete", key=f"del{idx}"):
+                    st.session_state.alarms.pop(idx)
+                    st.experimental_rerun()
 
-        with col3:
-            if st.button("Enable/Disable", key=f"enable_{idx}"):
-                alarm.enabled = not alarm.enabled
-
-        with col4:
-            if st.button("Delete", key=f"delete_{idx}"):
-                st.session_state.alarms.pop(idx)
-                st.experimental_rerun()
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
-# --------------------------------------------------------------------
-# Alarm Trigger
-# --------------------------------------------------------------------
+# ===============================
+# Trigger logic
+# ===============================
 now = datetime.datetime.now()
 current_time = now.strftime("%H:%M")
 current_day = now.strftime("%a")
 
 for alarm in st.session_state.alarms:
     if alarm.enabled:
-        should_trigger = alarm.time_str == current_time
-        if alarm.repeat:
-            should_trigger = should_trigger and (current_day in alarm.repeat)
+        match_time = alarm.time_str == current_time
+        match_day = (not alarm.repeat) or (current_day in alarm.repeat)
 
-        if should_trigger:
+        if match_time and match_day:
             st.session_state.triggered = {
                 "label": alarm.label,
-                "start_time": time.time()
+                "start": time.time()
             }
 
-# Trigger UI
+# ===============================
+# Alarm Ringing UI
+# ===============================
 if st.session_state.triggered:
-    st.error("Alarm is ringing!")
+    st.error("⏰ Alarm ringing!")
     st.write(f"Alarm: **{st.session_state.triggered['label']}**")
 
     if st.button("Stop Alarm"):
-        duration = int(time.time() - st.session_state.triggered["start_time"])
-        st.session_state.logs.append(AlarmLog(st.session_state.triggered["label"], duration))
+        duration = int(time.time() - st.session_state.triggered['start'])
+        st.session_state.logs.append(AlarmLog(st.session_state.triggered['label'], duration))
         st.session_state.triggered = None
-        st.success("Alarm stopped")
+        st.success("Stopped")
 
-# --------------------------------------------------------------------
+# ===============================
 # Logs
-# --------------------------------------------------------------------
-st.subheader("Alarm Logs")
+# ===============================
+st.subheader("History Logs")
 
-if len(st.session_state.logs) == 0:
-    st.info("No logs yet.")
+if not st.session_state.logs:
+    st.info("No logs available.")
 else:
     for log in st.session_state.logs:
-
-        st.markdown("""
-            <div style="
-                border:1px solid #e1e1e1; 
-                padding:15px; 
-                border-radius:10px;
-                margin-bottom:10px;">
-            """, unsafe_allow_html=True)
-
-        col1, col2 = st.columns([1, 6])
-
-        with col1:
-            st.image(ICON_LOG, width=40)
-        with col2:
-            st.write(f"**{log.label}**")
-            st.write(f"Time: {log.timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
-            st.write(f"Duration: {format_duration(log.duration)}")
-
-        st.markdown("</div>", unsafe_allow_html=True)
+        with st.container():
+            col1, col2 = st.columns([1, 6])
+            with col1:
+                st.image(ICON_LOG, width=35)
+            with col2:
+                st.write(f"**{log.label}**")
+                st.write(f"🕒 {log.timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
+                st.write(f"Duration: {format_duration(log.duration)}")
