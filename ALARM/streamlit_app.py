@@ -2,133 +2,128 @@ import streamlit as st
 import datetime
 import time
 
-# =====================================
-# PAGE CONFIG
-# =====================================
-st.set_page_config(
-    page_title="Modern Alarm App",
-    page_icon="⏰",
-    layout="centered"
-)
+# -----------------------------------------------------------
+# Model data untuk alarm & log
+# -----------------------------------------------------------
+class Alarm:
+    def __init__(self, label, time_str, repeat):
+        self.label = label
+        self.time_str = time_str
+        self.repeat = repeat  # list of days
+        self.enabled = True
 
-# =====================================
-# HEADER MODERN
-# =====================================
-st.markdown("""
-    <div style="text-align:center; padding: 10px;">
-        <img src="https://openmoji.org/data/color/svg/23F0.svg" width="90">
-        <h1 style="
-            font-weight:700;
-            margin-top: 5px;
-            color: #333;
-        ">Modern Alarm App</h1>
-        <p style="margin-top: -10px; color: #777; font-size: 15px;">
-            Simple • Clean • Modern Interface
-        </p>
-    </div>
-""", unsafe_allow_html=True)
+class AlarmLog:
+    def __init__(self, label, duration):
+        self.label = label
+        self.duration = duration
+        self.timestamp = datetime.datetime.now()
 
+# -----------------------------------------------------------
+# Utility
+# -----------------------------------------------------------
+def format_duration(seconds):
+    minutes = seconds // 60
+    remaining_seconds = seconds % 60
+    return f"{minutes}m {remaining_seconds}s"
 
-# =====================================
-# SESSION STATE
-# =====================================
-if "alarm_time" not in st.session_state:
-    st.session_state.alarm_time = None
+# -----------------------------------------------------------
+# Initialize State
+# -----------------------------------------------------------
+if "alarms" not in st.session_state:
+    st.session_state.alarms = []
 
 if "logs" not in st.session_state:
     st.session_state.logs = []
 
+if "triggered" not in st.session_state:
+    st.session_state.triggered = None
 
-# =====================================
-# SECTION: SET ALARM (CARD)
-# =====================================
-st.markdown("""
-    <div style="
-        background: #ffffff;
-        padding: 20px;
-        border-radius: 14px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.07);
-        border: 1px solid #eee;
-        margin-bottom: 18px;
-    ">
-        <h3 style="margin-bottom:5px;">⏰ Set Alarm</h3>
-    </div>
-""", unsafe_allow_html=True)
+# -----------------------------------------------------------
+# Sidebar - Create Alarm
+# -----------------------------------------------------------
+st.sidebar.title("Create Alarm")
 
-alarm_input = st.time_input("Pilih Jam Alarm", value=None)
+label = st.sidebar.text_input("Label", "")
+time_str = st.sidebar.time_input("Alarm Time", value=datetime.time(7, 0)).strftime("%H:%M")
+repeat_days = st.sidebar.multiselect("Repeat", ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"])
 
-if st.button("Set Alarm"):
-    st.session_state.alarm_time = alarm_input
-    st.success(f"Alarm berhasil disetel untuk pukul **{alarm_input}**")
+if st.sidebar.button("Add Alarm"):
+    st.session_state.alarms.append(Alarm(label, time_str, repeat_days))
+    st.sidebar.success("Alarm added successfully.")
 
+# -----------------------------------------------------------
+# Main Layout
+# -----------------------------------------------------------
+st.title("Alarm App")
 
-# =====================================
-# SECTION: STATUS (CARD)
-# =====================================
-st.markdown("""
-    <div style="
-        background: #ffffff;
-        padding: 20px;
-        border-radius: 14px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.07);
-        border: 1px solid #eee;
-        margin-top: 15px;
-        margin-bottom: 18px;
-    ">
-        <h3 style="margin-bottom:5px;">🔄 Alarm Status</h3>
-    </div>
-""", unsafe_allow_html=True)
+# -----------------------------------------------------------
+# Display Active Alarms
+# -----------------------------------------------------------
+st.subheader("Active Alarms")
 
-current_time = datetime.datetime.now().strftime("%H:%M:%S")
-st.write(f"**Waktu Sekarang:** {current_time}")
+if len(st.session_state.alarms) == 0:
+    st.info("No alarms available.")
+else:
+    for idx, alarm in enumerate(st.session_state.alarms):
+        col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
+        with col1:
+            st.write(f"{alarm.label} — {alarm.time_str}")
+        with col2:
+            st.write(", ".join(alarm.repeat) if alarm.repeat else "No Repeat")
+        with col3:
+            if st.button("Toggle", key=f"toggle_{idx}"):
+                alarm.enabled = not alarm.enabled
+        with col4:
+            if st.button("Delete", key=f"delete_{idx}"):
+                st.session_state.alarms.pop(idx)
+                st.experimental_rerun()
 
-if st.session_state.alarm_time:
-    alarm_str = st.session_state.alarm_time.strftime("%H:%M:00")
+# -----------------------------------------------------------
+# Alarm Trigger Check
+# -----------------------------------------------------------
+current_time = datetime.datetime.now().strftime("%H:%M")
+current_day = datetime.datetime.now().strftime("%a")
 
-    if current_time == alarm_str:
-        st.warning("⏰ Alarm Berbunyi!")
-        st.balloons()
+for alarm in st.session_state.alarms:
+    if alarm.enabled:
+        should_trigger = (alarm.time_str == current_time)
 
-        # Simpan log
-        st.session_state.logs.append({
-            "time": current_time,
-            "status": "Alarm triggered"
-        })
-    else:
-        st.info("Alarm belum berbunyi.")
+        if alarm.repeat:
+            should_trigger = should_trigger and (current_day in alarm.repeat)
 
+        if should_trigger:
+            st.session_state.triggered = {
+                "label": alarm.label,
+                "start_time": time.time()
+            }
 
-# =====================================
-# SECTION: LOGS (CARD)
-# =====================================
-st.markdown("""
-    <div style="
-        background: #ffffff;
-        padding: 20px;
-        border-radius: 14px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.07);
-        border: 1px solid #eee;
-        margin-top: 15px;
-    ">
-        <h3 style="margin-bottom:5px;">📜 Alarm Log</h3>
-    </div>
-""", unsafe_allow_html=True)
+# -----------------------------------------------------------
+# Triggered Alarm Interface
+# -----------------------------------------------------------
+if st.session_state.triggered:
+    st.warning(f"Alarm: {st.session_state.triggered['label']} is ringing!")
+
+    if st.button("Stop Alarm"):
+        start = st.session_state.triggered["start_time"]
+        duration = int(time.time() - start)
+
+        st.session_state.logs.append(
+            AlarmLog(st.session_state.triggered["label"], duration)
+        )
+
+        st.session_state.triggered = None
+        st.success("Alarm stopped.")
+
+# -----------------------------------------------------------
+# Alarm Logs
+# -----------------------------------------------------------
+st.subheader("Alarm Logs")
 
 if len(st.session_state.logs) == 0:
-    st.write("Belum ada log alarm.")
+    st.info("No logs available.")
 else:
     for log in st.session_state.logs:
-        st.markdown(
-            f"""
-            <div style="
-                background: #fafafa;
-                padding: 12px;
-                border-radius: 10px;
-                border: 1px solid #e6e6e6;
-                margin-bottom: 10px;
-            ">
-                <b>{log['time']}</b> — {log['status']}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+        timestamp_str = log.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        duration_str = format_duration(log.duration)
+
+        st.write(f"{timestamp_str} - {log.label} - {duration_str}")
