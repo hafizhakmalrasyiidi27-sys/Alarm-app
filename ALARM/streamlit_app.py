@@ -3,13 +3,13 @@ import datetime
 import time
 
 # --------------------------------------------------------------------
-#  Image URLs (Open-source icons)
+#  Image URLs (GitHub Raw – always accessible)
 # --------------------------------------------------------------------
-ICON_ALARM = "https://cdn-icons-png.flaticon.com/512/1827/1827370.png"
-ICON_TIME = "https://cdn-icons-png.flaticon.com/512/1827/1827375.png"
-ICON_REPEAT = "https://cdn-icons-png.flaticon.com/512/1827/1827393.png"
-ICON_LOG = "https://cdn-icons-png.flaticon.com/512/2099/2099199.png"
-HEADER_BANNER = "https://cdn.pixabay.com/photo/2017/08/30/07/45/alarm-clock-2691564_1280.jpg"
+ICON_ALARM = "https://raw.githubusercontent.com/hjnilsson/country-flags/master/png100px/id.png"
+ICON_TIME = "https://raw.githubusercontent.com/google/material-design-icons/master/png/device/access_time/materialiconsoutlined/48dp/2x/outline_access_time_black_48dp.png"
+ICON_REPEAT = "https://raw.githubusercontent.com/google/material-design-icons/master/png/av/repeat/materialicons/48dp/2x/baseline_repeat_black_48dp.png"
+ICON_LOG = "https://raw.githubusercontent.com/google/material-design-icons/master/png/action/history/materialicons/48dp/2x/baseline_history_black_48dp.png"
+HEADER_BANNER = "https://raw.githubusercontent.com/techwithtim/Flask-App-Tutorial/master/static/img/alarm.jpg"
 
 # --------------------------------------------------------------------
 #  Models
