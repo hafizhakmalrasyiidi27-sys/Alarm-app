@@ -1,6 +1,5 @@
 import streamlit as st
 import datetime
-import time
 
 # =====================================
 # PAGE CONFIG
@@ -12,22 +11,45 @@ st.set_page_config(
 )
 
 # =====================================
+# CUSTOM CSS (MODERN LOOK)
+# =====================================
+st.markdown("""
+<style>
+.card {
+    background: #ffffff;
+    padding: 22px;
+    border-radius: 16px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    border: 1px solid #eee;
+    margin-bottom: 20px;
+}
+.log-box {
+    background: #f8f8f8;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid #e5e5e5;
+    margin-bottom: 10px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# =====================================
 # HEADER MODERN
 # =====================================
 st.markdown("""
-    <div style="text-align:center; padding: 10px;">
-        <img src="https://openmoji.org/data/color/svg/23F0.svg" width="90">
+    <div style="text-align:center; padding: 20px 10px;">
+        <img src="https://cdn-icons-png.flaticon.com/512/3515/3515498.png"
+             width="100" style="margin-bottom:10px;">
         <h1 style="
-            font-weight:700;
+            font-weight:800;
             margin-top: 5px;
-            color: #333;
+            color:#222;
         ">Modern Alarm App</h1>
-        <p style="margin-top: -10px; color: #777; font-size: 15px;">
-            Simple • Clean • Modern Interface
+        <p style="margin-top:-8px; color:#666; font-size:15px;">
+            Minimal • Clean • Smooth Interface
         </p>
     </div>
 """, unsafe_allow_html=True)
-
 
 # =====================================
 # SESSION STATE
@@ -38,46 +60,24 @@ if "alarm_time" not in st.session_state:
 if "logs" not in st.session_state:
     st.session_state.logs = []
 
-
 # =====================================
-# SECTION: SET ALARM (CARD)
+# SECTION: SET ALARM
 # =====================================
-st.markdown("""
-    <div style="
-        background: #ffffff;
-        padding: 20px;
-        border-radius: 14px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.07);
-        border: 1px solid #eee;
-        margin-bottom: 18px;
-    ">
-        <h3 style="margin-bottom:5px;">⏰ Set Alarm</h3>
-    </div>
-""", unsafe_allow_html=True)
+st.markdown('<div class="card">', unsafe_allow_html=True)
+st.markdown("### ⏰ Set Alarm")
 
 alarm_input = st.time_input("Pilih Jam Alarm", value=None)
 
 if st.button("Set Alarm"):
     st.session_state.alarm_time = alarm_input
     st.success(f"Alarm berhasil disetel untuk pukul **{alarm_input}**")
-
+st.markdown('</div>', unsafe_allow_html=True)
 
 # =====================================
-# SECTION: STATUS (CARD)
+# SECTION: STATUS
 # =====================================
-st.markdown("""
-    <div style="
-        background: #ffffff;
-        padding: 20px;
-        border-radius: 14px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.07);
-        border: 1px solid #eee;
-        margin-top: 15px;
-        margin-bottom: 18px;
-    ">
-        <h3 style="margin-bottom:5px;">🔄 Alarm Status</h3>
-    </div>
-""", unsafe_allow_html=True)
+st.markdown('<div class="card">', unsafe_allow_html=True)
+st.markdown("### 🔄 Status Alarm")
 
 current_time = datetime.datetime.now().strftime("%H:%M:%S")
 st.write(f"**Waktu Sekarang:** {current_time}")
@@ -89,46 +89,30 @@ if st.session_state.alarm_time:
         st.warning("⏰ Alarm Berbunyi!")
         st.balloons()
 
-        # Simpan log
         st.session_state.logs.append({
             "time": current_time,
             "status": "Alarm triggered"
         })
     else:
         st.info("Alarm belum berbunyi.")
-
+else:
+    st.write("Belum ada alarm yang disetel.")
+st.markdown('</div>', unsafe_allow_html=True)
 
 # =====================================
-# SECTION: LOGS (CARD)
+# SECTION: LOGS
 # =====================================
-st.markdown("""
-    <div style="
-        background: #ffffff;
-        padding: 20px;
-        border-radius: 14px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.07);
-        border: 1px solid #eee;
-        margin-top: 15px;
-    ">
-        <h3 style="margin-bottom:5px;">📜 Alarm Log</h3>
-    </div>
-""", unsafe_allow_html=True)
+st.markdown('<div class="card">', unsafe_allow_html=True)
+st.markdown("### 📜 Alarm Log")
 
 if len(st.session_state.logs) == 0:
     st.write("Belum ada log alarm.")
 else:
     for log in st.session_state.logs:
         st.markdown(
-            f"""
-            <div style="
-                background: #fafafa;
-                padding: 12px;
-                border-radius: 10px;
-                border: 1px solid #e6e6e6;
-                margin-bottom: 10px;
-            ">
+            f"""<div class="log-box">
                 <b>{log['time']}</b> — {log['status']}
-            </div>
-            """,
+            </div>""",
             unsafe_allow_html=True
         )
+st.markdown('</div>', unsafe_allow_html=True)
