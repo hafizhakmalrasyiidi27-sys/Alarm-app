@@ -83,7 +83,8 @@ st.subheader("Active Alarms")
 if len(st.session_state.alarms) == 0:
     st.info("No alarms available.")
 else:
-    for idx, alarm in enumerate(st.session_state.alarms):
+    # Iterate using enumerate over a snapshot (but we won't mutate in-place)
+    for idx, alarm in enumerate(list(st.session_state.alarms)):
         col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
         with col1:
             st.write(f"{alarm.label} — {alarm.time_str}")
@@ -91,10 +92,15 @@ else:
             st.write(", ".join(alarm.repeat) if alarm.repeat else "No Repeat")
         with col3:
             if st.button("Toggle", key=f"toggle_{idx}"):
-                alarm.enabled = not alarm.enabled
+                # Toggle in place is okay (we are not changing list length)
+                st.session_state.alarms[idx].enabled = not st.session_state.alarms[idx].enabled
         with col4:
             if st.button("Delete", key=f"delete_{idx}"):
-                st.session_state.alarms.pop(idx)
+                # SAFE removal: rebuild the list without the deleted index
+                st.session_state.alarms = [
+                    a for i, a in enumerate(st.session_state.alarms) if i != idx
+                ]
+                # Rerun to refresh UI after replacing the list
                 st.experimental_rerun()
 
 # -----------------------------------------------------------
