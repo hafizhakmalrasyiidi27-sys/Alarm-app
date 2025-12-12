@@ -3,6 +3,12 @@ import datetime
 import time
 
 # -----------------------------------------------------------
+# Auto Refresh (agar alarm bisa trigger)
+# -----------------------------------------------------------
+# Refresh setiap 1 detik menggunakan query params hack
+st.experimental_set_query_params(refresh=str(int(time.time())))
+
+# -----------------------------------------------------------
 # Model data untuk alarm & log
 # -----------------------------------------------------------
 class Alarm:
@@ -26,6 +32,7 @@ def format_duration(seconds):
     remaining_seconds = seconds % 60
     return f"{minutes}m {remaining_seconds}s"
 
+
 # -----------------------------------------------------------
 # Initialize State
 # -----------------------------------------------------------
@@ -37,6 +44,7 @@ if "logs" not in st.session_state:
 
 if "triggered" not in st.session_state:
     st.session_state.triggered = None
+
 
 # -----------------------------------------------------------
 # Background (TAMBAHAN)
@@ -51,6 +59,7 @@ page_bg = """
 """
 st.markdown(page_bg, unsafe_allow_html=True)
 
+
 # -----------------------------------------------------------
 # Sidebar - Create Alarm
 # -----------------------------------------------------------
@@ -64,16 +73,18 @@ if st.sidebar.button("Add Alarm"):
     st.session_state.alarms.append(Alarm(label, time_str, repeat_days))
     st.sidebar.success("Alarm added successfully.")
 
+
 # -----------------------------------------------------------
 # Main Layout
 # -----------------------------------------------------------
 st.title("Alarm App")
 
-# <<< Gambar jam modern (TAMBAHAN) >>>
+# Gambar jam modern
 st.image(
-    "https://cdn-icons-png.flaticon.com/512/992/992700.png",  # gambar jam
+    "https://cdn-icons-png.flaticon.com/512/992/992700.png",
     width=150
 )
+
 
 # -----------------------------------------------------------
 # Display Active Alarms
@@ -83,25 +94,26 @@ st.subheader("Active Alarms")
 if len(st.session_state.alarms) == 0:
     st.info("No alarms available.")
 else:
-    # Iterate using enumerate over a snapshot (but we won't mutate in-place)
     for idx, alarm in enumerate(list(st.session_state.alarms)):
         col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
+
         with col1:
             st.write(f"{alarm.label} — {alarm.time_str}")
+
         with col2:
             st.write(", ".join(alarm.repeat) if alarm.repeat else "No Repeat")
+
         with col3:
             if st.button("Toggle", key=f"toggle_{idx}"):
-                # Toggle in place is okay (we are not changing list length)
                 st.session_state.alarms[idx].enabled = not st.session_state.alarms[idx].enabled
+
         with col4:
             if st.button("Delete", key=f"delete_{idx}"):
-                # SAFE removal: rebuild the list without the deleted index
                 st.session_state.alarms = [
                     a for i, a in enumerate(st.session_state.alarms) if i != idx
                 ]
-                # Rerun to refresh UI after replacing the list
                 st.experimental_rerun()
+
 
 # -----------------------------------------------------------
 # Alarm Trigger Check
@@ -122,11 +134,12 @@ for alarm in st.session_state.alarms:
                 "start_time": time.time()
             }
 
+
 # -----------------------------------------------------------
 # Triggered Alarm Interface
 # -----------------------------------------------------------
 if st.session_state.triggered:
-    st.warning(f"Alarm: {st.session_state.triggered['label']} is ringing!")
+    st.warning(f"⏰ Alarm: {st.session_state.triggered['label']} is ringing!")
 
     if st.button("Stop Alarm"):
         start = st.session_state.triggered["start_time"]
@@ -138,6 +151,7 @@ if st.session_state.triggered:
 
         st.session_state.triggered = None
         st.success("Alarm stopped.")
+
 
 # -----------------------------------------------------------
 # Alarm Logs
