@@ -45,7 +45,6 @@ if "logs" not in st.session_state:
 if "triggered" not in st.session_state:
     st.session_state.triggered = None
 
-
 # -----------------------------------------------------------
 # Background (TAMBAHAN)
 # -----------------------------------------------------------
@@ -94,7 +93,9 @@ st.subheader("Active Alarms")
 if len(st.session_state.alarms) == 0:
     st.info("No alarms available.")
 else:
-    for idx, alarm in enumerate(list(st.session_state.alarms)):
+    # iterate over a snapshot to avoid index issues if list changes
+    snapshot = list(st.session_state.alarms)
+    for idx, alarm in enumerate(snapshot):
         col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
 
         with col1:
@@ -105,13 +106,19 @@ else:
 
         with col3:
             if st.button("Toggle", key=f"toggle_{idx}"):
-                st.session_state.alarms[idx].enabled = not st.session_state.alarms[idx].enabled
+                # toggle the corresponding alarm in the real session_state list
+                # guard in case list changed: check idx in range
+                if 0 <= idx < len(st.session_state.alarms):
+                    st.session_state.alarms[idx].enabled = not st.session_state.alarms[idx].enabled
 
         with col4:
             if st.button("Delete", key=f"delete_{idx}"):
-                st.session_state.alarms = [
-                    a for i, a in enumerate(st.session_state.alarms) if i != idx
-                ]
+                # SAFE removal: rebuild the list without the deleted index
+                # Use enumerate on the CURRENT alarms (not snapshot) to ensure correct removal
+                new_list = [a for i, a in enumerate(st.session_state.alarms) if i != idx]
+                st.session_state.alarms = new_list
+                # No st.experimental_rerun() here — Streamlit will re-run automatically after the button click
+                # Stop further execution of this run to avoid any inconsistent rendering
                 st.experimental_rerun()
 
 
@@ -129,10 +136,12 @@ for alarm in st.session_state.alarms:
             should_trigger = should_trigger and (current_day in alarm.repeat)
 
         if should_trigger:
-            st.session_state.triggered = {
-                "label": alarm.label,
-                "start_time": time.time()
-            }
+            # Only set triggered if none currently triggered (prevents overwriting start_time)
+            if not st.session_state.triggered:
+                st.session_state.triggered = {
+                    "label": alarm.label,
+                    "start_time": time.time()
+                }
 
 
 # -----------------------------------------------------------
