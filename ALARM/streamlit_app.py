@@ -5,7 +5,8 @@ import time
 # -----------------------------------------------------------
 # Auto Refresh (agar alarm bisa trigger)
 # -----------------------------------------------------------
-# Refresh setiap 1 detik menggunakan query params hack
+# Note: ini mengubah query param setiap run agar Streamlit melakukan refresh.
+# Jika ingin hentikan auto-refresh, hapus atau komentari baris ini.
 st.experimental_set_query_params(refresh=str(int(time.time())))
 
 # -----------------------------------------------------------
@@ -44,6 +45,7 @@ if "logs" not in st.session_state:
 
 if "triggered" not in st.session_state:
     st.session_state.triggered = None
+
 
 # -----------------------------------------------------------
 # Background (TAMBAHAN)
@@ -93,9 +95,14 @@ st.subheader("Active Alarms")
 if len(st.session_state.alarms) == 0:
     st.info("No alarms available.")
 else:
-    # iterate over a snapshot to avoid index issues if list changes
-    snapshot = list(st.session_state.alarms)
-    for idx, alarm in enumerate(snapshot):
+    # Iterate by index to keep references stable for buttons
+    for idx in range(len(st.session_state.alarms)):
+        # Guard: in some rare cases list could have changed; re-check length
+        if idx >= len(st.session_state.alarms):
+            break
+
+        alarm = st.session_state.alarms[idx]
+
         col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
 
         with col1:
@@ -104,22 +111,22 @@ else:
         with col2:
             st.write(", ".join(alarm.repeat) if alarm.repeat else "No Repeat")
 
+        # Buttons use unique keys based on idx + stable prefix
+        toggle_key = f"toggle_{idx}"
+        delete_key = f"delete_{idx}"
+
         with col3:
-            if st.button("Toggle", key=f"toggle_{idx}"):
-                # toggle the corresponding alarm in the real session_state list
-                # guard in case list changed: check idx in range
+            if st.button("Toggle", key=toggle_key):
+                # verify idx still valid
                 if 0 <= idx < len(st.session_state.alarms):
                     st.session_state.alarms[idx].enabled = not st.session_state.alarms[idx].enabled
 
         with col4:
-            if st.button("Delete", key=f"delete_{idx}"):
-                # SAFE removal: rebuild the list without the deleted index
-                # Use enumerate on the CURRENT alarms (not snapshot) to ensure correct removal
-                new_list = [a for i, a in enumerate(st.session_state.alarms) if i != idx]
-                st.session_state.alarms = new_list
-                # No st.experimental_rerun() here — Streamlit will re-run automatically after the button click
-                # Stop further execution of this run to avoid any inconsistent rendering
-                st.experimental_rerun()
+            if st.button("Delete", key=delete_key):
+                # Safe removal: build new list without the selected index
+                if 0 <= idx < len(st.session_state.alarms):
+                    st.session_state.alarms = [a for i, a in enumerate(st.session_state.alarms) if i != idx]
+                # Do NOT call st.experimental_rerun(); Streamlit will re-run after button click automatically.
 
 
 # -----------------------------------------------------------
