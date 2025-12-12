@@ -56,6 +56,13 @@ if st.sidebar.button("Add Alarm"):
 # -----------------------------------------------------------
 st.title("Alarm App")
 
+# <<< tambahan gambar alarm modern >>>
+st.image(
+    "https://cdn-icons-png.flaticon.com/512/2947/2947985.png",
+    width=150,
+    caption="Modern Alarm Icon"
+)
+
 # -----------------------------------------------------------
 # Display Active Alarms
 # -----------------------------------------------------------
