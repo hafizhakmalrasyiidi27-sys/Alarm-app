@@ -39,6 +39,19 @@ if "triggered" not in st.session_state:
     st.session_state.triggered = None
 
 # -----------------------------------------------------------
+# Background (TAMBAHAN)
+# -----------------------------------------------------------
+page_bg = """
+<style>
+[data-testid="stAppViewContainer"] {
+    background: linear-gradient(135deg, #eef2f3 0%, #8e9eab 100%);
+    background-size: cover;
+}
+</style>
+"""
+st.markdown(page_bg, unsafe_allow_html=True)
+
+# -----------------------------------------------------------
 # Sidebar - Create Alarm
 # -----------------------------------------------------------
 st.sidebar.title("Create Alarm")
@@ -56,11 +69,10 @@ if st.sidebar.button("Add Alarm"):
 # -----------------------------------------------------------
 st.title("Alarm App")
 
-# <<< tambahan gambar alarm modern >>>
+# <<< Gambar jam modern (TAMBAHAN) >>>
 st.image(
-    "https://cdn-icons-png.flaticon.com/512/2947/2947985.png",
-    width=150,
-    caption="Modern Alarm Icon"
+    "https://cdn-icons-png.flaticon.com/512/992/992700.png",  # gambar jam
+    width=150
 )
 
 # -----------------------------------------------------------
