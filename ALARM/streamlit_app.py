@@ -227,10 +227,4 @@ else:
 # -----------------------------------------------------------
 st.markdown("---")
 st.markdown(
-    """
-    **Tips**
-    - App melakukan refresh otomatis setiap detik supaya alarm dapat ter-detect.
-    - Alarm hanya akan tercatat ke *logs* ketika kamu menekan **Stop Alarm**.
-    - Jika suara tidak otomatis play karena aturan browser, coba tekan **Test Sound** di sidebar (interaksi user biasanya membuka akses audio).
-    """
 )
