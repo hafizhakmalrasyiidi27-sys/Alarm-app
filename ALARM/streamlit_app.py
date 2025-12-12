@@ -5,7 +5,7 @@ import datetime
 # PAGE CONFIG
 # =====================================
 st.set_page_config(
-    page_title="Modern Alarm App",
+    page_title="ALARM MODERN",
     page_icon="⏰",
     layout="centered"
 )
@@ -34,17 +34,17 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =====================================
-# HEADER MODERN
+# HEADER TANPA LOGO + GAMBAR ALARM ESTETIK
 # =====================================
 st.markdown("""
     <div style="text-align:center; padding: 20px 10px;">
-        <img src="https://cdn-icons-png.flaticon.com/512/3515/3515498.png"
-             width="100" style="margin-bottom:10px;">
+        <img src="https://cdn-icons-png.flaticon.com/512/1048/1048944.png"
+             width="120" style="margin-bottom:15px;">
         <h1 style="
             font-weight:800;
             margin-top: 5px;
             color:#222;
-        ">Modern Alarm App</h1>
+        ">ALARM MODERN</h1>
         <p style="margin-top:-8px; color:#666; font-size:15px;">
             Minimal • Clean • Smooth Interface
         </p>
@@ -97,6 +97,7 @@ if st.session_state.alarm_time:
         st.info("Alarm belum berbunyi.")
 else:
     st.write("Belum ada alarm yang disetel.")
+
 st.markdown('</div>', unsafe_allow_html=True)
 
 # =====================================
