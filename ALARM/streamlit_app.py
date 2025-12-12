@@ -1,18 +1,13 @@
 import streamlit as st
 import datetime
 
-# =====================================
-# PAGE CONFIG
-# =====================================
 st.set_page_config(
     page_title="ALARM MODERN",
     page_icon="⏰",
     layout="centered"
 )
 
-# =====================================
-# CUSTOM CSS (MODERN LOOK)
-# =====================================
+# CSS
 st.markdown("""
 <style>
 .card {
@@ -33,36 +28,31 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# =====================================
-# HEADER TANPA LOGO + GAMBAR ALARM ESTETIK
-# =====================================
+# HEADER
 st.markdown("""
-    <div style="text-align:center; padding: 20px 10px;">
+    <div style="text-align:center; padding: 25px 10px;">
         <img src="https://cdn-icons-png.flaticon.com/512/1048/1048944.png"
-             width="120" style="margin-bottom:15px;">
+             width="130" style="margin-bottom:18px;">
+        
         <h1 style="
             font-weight:800;
-            margin-top: 5px;
+            margin-top: 0px;
             color:#222;
         ">ALARM MODERN</h1>
+
         <p style="margin-top:-8px; color:#666; font-size:15px;">
             Minimal • Clean • Smooth Interface
         </p>
     </div>
 """, unsafe_allow_html=True)
 
-# =====================================
-# SESSION STATE
-# =====================================
+# Session
 if "alarm_time" not in st.session_state:
     st.session_state.alarm_time = None
-
 if "logs" not in st.session_state:
     st.session_state.logs = []
 
-# =====================================
-# SECTION: SET ALARM
-# =====================================
+# SET ALARM
 st.markdown('<div class="card">', unsafe_allow_html=True)
 st.markdown("### ⏰ Set Alarm")
 
@@ -73,9 +63,7 @@ if st.button("Set Alarm"):
     st.success(f"Alarm berhasil disetel untuk pukul **{alarm_input}**")
 st.markdown('</div>', unsafe_allow_html=True)
 
-# =====================================
-# SECTION: STATUS
-# =====================================
+# STATUS
 st.markdown('<div class="card">', unsafe_allow_html=True)
 st.markdown("### 🔄 Status Alarm")
 
@@ -97,12 +85,9 @@ if st.session_state.alarm_time:
         st.info("Alarm belum berbunyi.")
 else:
     st.write("Belum ada alarm yang disetel.")
-
 st.markdown('</div>', unsafe_allow_html=True)
 
-# =====================================
-# SECTION: LOGS
-# =====================================
+# LOGS
 st.markdown('<div class="card">', unsafe_allow_html=True)
 st.markdown("### 📜 Alarm Log")
 
